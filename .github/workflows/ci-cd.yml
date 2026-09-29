@@ -61,16 +61,19 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Setup SSH
+    - name: Setup SSH with ssh-agent
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.AWS_PRIVATE_KEY }}
+    
+    - name: Add AWS host to known_hosts
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.AWS_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-        chmod 600 ~/.ssh/deploy_key
-        ssh-keyscan -H ${{ secrets.AWS_HOST }} >> ~/.ssh/known_hosts
+        ssh-keyscan -H ${{ secrets.AWS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
     
     - name: Deploy and Update Timestamp
       run: |
-        ssh -i ~/.ssh/deploy_key ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }} "
+        ssh -o StrictHostKeyChecking=no ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }} "
           # Get current time in IST (UTC+5:30)
           TIMESTAMP=\$(TZ='Asia/Kolkata' date '+%Y-%m-%d %H:%M:%S %Z')
           
@@ -80,8 +83,3 @@ jobs:
           
           echo 'Deployment completed successfully'
         "
-    
-    - name: Cleanup SSH Key
-      if: always()
-      run: |
-        rm -f ~/.ssh/deploy_key
