@@ -1,0 +1,75 @@
+TCID,TEST CASE NAME,TEST CASE DESCRIPTION,TEST PROCEDURE,EXPECTED RESULTS,VERDICT,PARAMETERS
+TC_001,Session Control Request,Verify ECU returns correct response for diagnostic session control request (0x10 0x01),"1. Load test data
+2. Call mock_ecu.process_request('10 01')
+3. Compare actual response with expected",Response should be '50 01' exactly,PASS,request='10 01'
+TC_002,Read Data By Identifier,Verify ECU returns correct response for read data by identifier request (0x22 F1 90),"1. Load test data
+2. Call mock_ecu.process_request('22 F1 90')
+3. Compare actual response with expected",Response should be '62 F1 90 12' exactly,PASS,request='22 F1 90'
+TC_003,Security Access Request,Verify ECU returns correct response for security access request (0x27 0x01),"1. Load test data
+2. Call mock_ecu.process_request('27 01')
+3. Compare actual response with expected",Response should be '67 01' exactly,PASS,request='27 01'
+TC_004,Unsupported Service Negative Response,Verify ECU returns negative response for unsupported/unknown diagnostic service (0x99 0x99),"1. Load test data
+2. Call mock_ecu.process_request('99 99')
+3. Verify negative response format",Response should be '7F 10 11' exactly,PASS,request='99 99'
+TC_005,Load Valid JSON Test File,Verify test runner successfully loads valid JSON test configuration file,"1. Create temporary valid JSON file with test cases
+2. Call run_all_tests(json_file_path)
+3. Verify results are returned as list",Results list should be non-empty and contain all test case results,PASS,json_file=valid_test.json
+TC_006,Test Result Structure Validation,Verify each test result contains all required fields (id, request, expected, actual, status),"1. Load valid test file
+2. Execute all tests
+3. Inspect first result dictionary
+4. Check presence of all required fields",Result should contain keys: id, request, expected, actual, status,PASS,fields=id,request,expected,actual,status
+TC_007,Generate JSON Report File,Verify report generator successfully creates JSON report file with valid syntax,"1. Create test results list with 2 entries
+2. Call generate_report(results)
+3. Verify file exists at output path
+4. Verify file contains valid JSON",Report file should be created and contain valid JSON structure,PASS,output_file=reports/test_report.json
+TC_008,Report Summary Statistics,Verify report summary correctly calculates total, passed, and failed test counts,"1. Create results: 3 PASS, 1 FAIL
+2. Generate report
+3. Inspect summary section
+4. Verify counts match input",Summary should show: total=4, passed=3, failed=1,PASS,total_tests=4|passed=3|failed=1
+TC_009,Missing JSON File Error Handling,Verify application handles missing JSON file gracefully with meaningful error message,"1. Call run_all_tests('nonexistent.json')
+2. Catch FileNotFoundError exception
+3. Verify error message is informative
+4. Verify exit code is 2",Application should raise FileNotFoundError with meaningful message; exit code 2,PASS,json_file=nonexistent.json|expected_error=FileNotFoundError
+TC_010,Invalid JSON Syntax Error Handling,Verify application handles malformed JSON gracefully with meaningful error message,"1. Create JSON file with syntax error
+2. Call run_all_tests(invalid_json.json)
+3. Catch JSONDecodeError exception
+4. Verify error message describes the problem",Application should raise JSONDecodeError with descriptive message; exit code 2,PASS,json_file=invalid.json|expected_error=JSONDecodeError
+TC_011,Missing Required Field in Test Case,Verify application detects and reports missing mandatory fields (id, request, expected),"1. Create JSON with missing 'expected' field
+2. Call run_all_tests(json_file)
+3. Verify KeyError is raised
+4. Check error message mentions missing field","Application should detect missing field and raise KeyError with field name; exit code 2",PASS,json_file=missing_field.json|expected_error=KeyError
+TC_012,Empty Test Cases List,Verify application handles empty test case list correctly,"1. Create JSON with empty 'tests' array
+2. Call run_all_tests(json_file)
+3. Verify empty results list is returned
+4. Verify summary shows 0 tests","Application should return empty results list; summary should show total=0, passed=0, failed=0",PASS,json_file=empty_tests.json
+TC_013,Execute Multiple Sequential Test Cases,Verify application executes multiple test cases in sequence without stopping,"1. Load JSON with 4 test cases
+2. Execute all tests
+3. Verify all 4 results are returned
+4. Verify each has correct status",All 4 tests should execute; results should include TC_001, TC_002, TC_003, TC_004,PASS,test_count=4
+TC_014,Mismatched Response Produces FAIL Status,Verify application marks test as FAIL when actual response differs from expected,"1. Load test case expecting '50 01'
+2. Mock ECU returns '50 02' instead
+3. Verify status is marked as FAIL
+4. Verify result records both values","Result should have status='FAIL'; expected='50 01'; actual='50 02'",PASS,expected='50 01'|actual='50 02'
+TC_015,Exit Code Zero on All Tests Pass,Verify application returns exit code 0 when all tests pass,"1. Execute all tests
+2. Verify all tests return PASS status
+3. Call main() function
+4. Check return value","main() should return 0; standard output should confirm success",PASS,all_tests_pass=true
+TC_016,Exit Code One on Any Test Fails,Verify application returns exit code 1 when at least one test fails,"1. Load tests with 1 failing case
+2. Execute all tests
+3. Verify at least one FAIL status
+4. Call main() function
+5. Check return value","main() should return 1; standard output should indicate failure",PASS,has_failing_test=true
+TC_017,Positive Test Case Type,Verify positive test cases pass when response is correct,"1. Load test case with type='positive'
+2. Send matching request/response
+3. Verify status is PASS
+4. Verify result correctly marked as positive","Status should be PASS; type should be positive",PASS,type=positive
+TC_018,Negative Test Case Type,Verify negative test cases pass when negative response (0x7F) is received,"1. Load test case with type='negative'
+2. Send request for unsupported service
+3. Receive negative response starting with '7F'
+4. Verify status is PASS","Status should be PASS; response should start with '7F' prefix",PASS,type=negative
+TC_019,Report Timestamp Format,Verify report includes timestamp in ISO 8601 format (YYYY-MM-DDTHH:MM:SS.ffffff),"1. Generate report with current test results
+2. Inspect timestamp field
+3. Verify format matches ISO 8601 pattern","Timestamp should be present and match ISO 8601 format (2026-09-29T12:30:45.123456)",PASS,timestamp_format=ISO8601
+TC_020,Console Output Format,Verify test execution prints test ID and status to console,"1. Execute run_all_tests() while capturing stdout
+2. Verify each test produces output line
+3. Check format is 'TC_XXX: PASS' or 'TC_XXX: FAIL'","Each test should print: 'TC_001: PASS' or 'TC_001: FAIL'",PASS,output_format='TCID: STATUS'

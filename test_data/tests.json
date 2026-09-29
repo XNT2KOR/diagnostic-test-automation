@@ -1,0 +1,32 @@
+{
+  "tests": [
+    {
+      "id": "TC_001",
+      "description": "Test diagnostic session control",
+      "request": "10 01",
+      "expected": "50 01",
+      "type": "positive"
+    },
+    {
+      "id": "TC_002",
+      "description": "Test read data by identifier",
+      "request": "22 F1 90",
+      "expected": "62 F1 90 12",
+      "type": "positive"
+    },
+    {
+      "id": "TC_003",
+      "description": "Test security access",
+      "request": "27 01",
+      "expected": "67 01",
+      "type": "positive"
+    },
+    {
+      "id": "TC_004",
+      "description": "Test unsupported service returns negative response",
+      "request": "99 99",
+      "expected": "7F 10 11",
+      "type": "negative"
+    }
+  ]
+}
