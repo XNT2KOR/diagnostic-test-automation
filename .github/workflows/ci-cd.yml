@@ -52,3 +52,36 @@ jobs:
       with:
         name: test-report-py${{ matrix.python-version }}
         path: reports/
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.AWS_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H ${{ secrets.AWS_HOST }} >> ~/.ssh/known_hosts
+    
+    - name: Deploy and Update Timestamp
+      run: |
+        ssh -i ~/.ssh/deploy_key ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }} "
+          # Get current time in IST (UTC+5:30)
+          TIMESTAMP=\$(TZ='Asia/Kolkata' date '+%Y-%m-%d %H:%M:%S %Z')
+          
+          # Update deployment log file with timestamp
+          DEPLOY_FILE='deployment.log'
+          echo 'Deployment at: '\$TIMESTAMP >> \$DEPLOY_FILE
+          
+          echo 'Deployment completed successfully'
+        "
+    
+    - name: Cleanup SSH Key
+      if: always()
+      run: |
+        rm -f ~/.ssh/deploy_key
