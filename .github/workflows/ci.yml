@@ -14,7 +14,7 @@ jobs:
         python-version: ['3.9', '3.10', '3.11', '3.12']
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
@@ -36,7 +36,7 @@ jobs:
     
     - name: Upload coverage reports
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-report-py${{ matrix.python-version }}
         path: htmlcov/
@@ -47,7 +47,7 @@ jobs:
     
     - name: Upload test reports
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: test-report-py${{ matrix.python-version }}
         path: reports/
